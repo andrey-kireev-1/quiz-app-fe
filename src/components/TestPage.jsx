@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchTest } from '../services/api';
+import { fetchTest, submitTestResults } from '../services/api';
 import { format } from 'date-fns';
 import { Header } from './Header'; // Add this import
 
@@ -53,7 +53,24 @@ export function TestPage() {
     }
   };
 
-  const handleTestComplete = () => {
+  const formatAnswersForSubmission = () => {
+    return {
+      answers: questions.map((question, index) => {
+        const selectedAnswerIndex = userAnswers[index];
+        if (selectedAnswerIndex === undefined) return null;
+
+        return {
+          question: index + 1,
+          selectedAnswers: [{
+            answer: question.answers[selectedAnswerIndex].text,
+            isCorrect: question.answers[selectedAnswerIndex].isCorrect
+          }]
+        };
+      }).filter(answer => answer !== null)
+    };
+  };
+
+  const handleTestComplete = async () => {
     let correct = 0;
     const total = questions.length;
 
@@ -72,6 +89,16 @@ export function TestPage() {
       totalQuestions: total,
       percentage
     });
+
+    try {
+      const formattedAnswers = formatAnswersForSubmission();
+      await submitTestResults(testId, percentage, formattedAnswers);
+    } catch (error) {
+      console.error('Failed to submit test results:', error);
+      // Optionally show error to user
+      setError('Не удалось сохранить результаты теста');
+    }
+
     setTestCompleted(true);
   };
 

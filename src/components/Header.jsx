@@ -18,9 +18,10 @@ export function Header() {
       <nav className="flex gap-8 items-center">
         {isAuthenticated ? (
           <>
-            <Link to="/create" className="hover:text-blue-600">Создать тест</Link>
-            <Link to="/home" className="hover:text-blue-600">Все тесты</Link>
-            <Link to="/private" className="hover:text-blue-600">Закрытый тест</Link>
+            <Link to="/create">Создать тест</Link>
+            <Link to="/home">Все тесты</Link>
+            <Link to="/private">Закрытый тест</Link>
+            <Link to="/profile">Личный кабинет</Link>
             <button 
               onClick={handleLogout}
               className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition"
