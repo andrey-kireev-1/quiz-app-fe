@@ -36,45 +36,54 @@ export const createTest = async (testData) => {
 };
 
 export const fetchTest = async (testId) => {
+  if (!testId) {
+    throw new Error('ID теста не найден');
+  }
+
   try {
-    const response = await fetchWithAuth(`${API_BASE_URL}/test/${testId}`,{
+    console.log('Fetching test with ID:', testId);
+    const response = await fetchWithAuth(`${API_BASE_URL}/test/${testId}`, {
       method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
 
-    console.log(response);
-
     if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Тест не найден');
+      }
       const errorData = await response.json();
       throw new Error(errorData.message || 'Ошибка при загрузке теста');
     }
 
-    return await response.json();
+    const data = await response.json();
+    console.log('Test data received:', data);
+    return data;
   } catch (error) {
     console.error('Fetch test error:', error);
     throw error;
   }
 };
 
-export const submitTestResults = async (testId, score, answers) => {
+export const submitTestResults = async (results) => {
   try {
-    const refreshToken = TokenService.getRefreshToken();
-    
     const response = await fetchWithAuth(`${API_BASE_URL}/set_result`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        testId: testId,
-        refreshToken: refreshToken,
-        score: score,
-        Result: answers
-      }),
+        testId: results.testId,
+        score: results.score,
+        result: results.result,
+        refreshToken: results.refreshToken
+      })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || 'Ошибка при сохранении результатов');
+      throw new Error(errorData.message || 'Ошибка при отправке результатов');
     }
 
     return;
@@ -84,9 +93,9 @@ export const submitTestResults = async (testId, score, answers) => {
   }
 };
 
-export const getAllTests = async (page) => {
+export const getHomeTests = async (page) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/get_all_tests/${page}/`);
+    const response = await fetch(`${API_BASE_URL}/get_home_tests/${page}/`);
     
     if (!response.ok) {
       throw new Error('Failed to fetch tests');
@@ -142,4 +151,31 @@ export const fetchTestResults = async () => {
   } catch (error) {
     throw error;
   }
+};
+
+export const fetchMyTests = async () => {
+  try {
+    const response = await fetchWithAuth(`${API_BASE_URL}/my_tests`);
+    if (!response.ok) throw new Error('Failed to fetch my tests');
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getAllTests = async (filters, page = 1) => {
+  const queryParams = new URLSearchParams({
+    page,
+    ...(filters.testName && { testName: filters.testName }),
+    ...(filters.authorName && { authorName: filters.authorName }),
+    ...(filters.createdFrom && { createdFrom: filters.createdFrom }),
+    ...(filters.createdTo && { createdTo: filters.createdTo }),
+    ...(filters.isStrict !== null && { isStrict: filters.isStrict }),
+  });
+
+  const response = await fetch(`${API_BASE_URL}/get_all_tests?${queryParams}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch tests');
+  }
+  return response.json();
 };

@@ -14,7 +14,7 @@ export const login = async (credentials) => {
     });
 
     if (!response.ok) {
-      throw new Error('Authentication failed');
+      throw response.status;
     }
 
     const data = await response.json();
@@ -121,13 +121,11 @@ export const register = async (userData) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Ошибка при регистрации');
+      throw response.status;
     }
 
     const data = await response.json();
     
-    // Сохраняем токены так же, как при логине
     if (data.accessToken) {
       TokenService.setAccessToken(data.accessToken);
     }
