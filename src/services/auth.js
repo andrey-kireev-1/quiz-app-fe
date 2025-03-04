@@ -1,6 +1,5 @@
 import { TokenService } from './tokenService';
-
-const API_BASE_URL = 'http://localhost:8000';
+import { API_BASE_URL } from './api';
 
 export const login = async (credentials) => {
   try {
@@ -112,7 +111,7 @@ export const checkAndRefreshAuth = async () => {
 
 export const register = async (userData) => {
   try {
-    const response = await fetch('http://localhost:8000/register', {
+    const response = await fetch(`${API_BASE_URL}/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
